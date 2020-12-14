@@ -115,26 +115,37 @@ int get_request(int fd, char *filename) {
     return 1;
   }
 
+
+  sscanf(msg, "%s %s", get, path);
+
+  if (strcmp(get, "GET") != 0) {
+    printf("not a GET\n");
+    return 1;
+  }
+
+  if (strstr(path," ") != NULL) {
+    printf("needs to be at least 2 strings\n");
+    return 1;
+  }
+
+  printf("path: %s\n", path);
+
   // check to see if the message contains either ".." or "//"
-  if (strstr(msg,"..") != NULL) {
+  if (strstr(path,"..") != NULL) {
     printf("found a ..\n");
     return 1;
   }
-  if (strstr(msg,"//") != NULL) {
+  if (strstr(path,"//") != NULL) {
     printf("found a //\n");
     return 1;
   }
 
   // make sure the string length isnt too long
-  if (strlen(msg) > 1023) {
+  if (strlen(path) > 1023) {
     printf("too long\n");
     return 1;
   }
 
-
-
-  sscanf(msg, "%s %s", get, path);
-  // printf("path: %s\nhttp: %s\n", path, http);
   strcpy(filename, path);
 
   // return 0 on success
@@ -164,8 +175,8 @@ int return_result(int fd, char *content_type, char *buf, int numbytes) {
   char good_request[MSGSIZE];
   sprintf(good_request,
     "HTTP/1.1 200 OK\nContent-Type: %s\nContent-Length: %d\nConnection: Close\n\n%s\n",
-    content_type, numbytes, buf);
-    printf("%s\n", buf);
+                              content_type,           numbytes,                 buf);
+    printf("returning:\n%s\n", good_request);
     write(fd, good_request, strlen(good_request));
     return 0;
 
@@ -181,4 +192,10 @@ int return_result(int fd, char *content_type, char *buf, int numbytes) {
    - returns 0 on success, nonzero on failure.
 ************************************************/
 int return_error(int fd, char *buf) {
+  char bad_request[MSGSIZE];
+  sprintf(bad_request,
+    "HTTP/1.1 404 Not Found\nContent-Type: Text/html\nContent-Length: %ld\nConnection: Close\n\n%s\n",
+                                                                    strlen(buf),              buf);
+  write(fd, bad_request, strlen(bad_request));
+  return 0;
 }
