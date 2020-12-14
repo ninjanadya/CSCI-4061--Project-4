@@ -1,2 +1,4 @@
-[0][1][5][/text/plain/0.txt][139][MISS]
-[0][2][6][/text/plain/0dyj.txt][Requested file not found.][MISS]
+[0][1][5][/text/plain/7.txt][139][MISS]
+[1][1][6][/text/plain/7.txt][139][HIT]
+[2][1][7][/text/plain/3.txt][139][MISS]
+[3][1][8][/text/plain/4.txt][139][MISS]

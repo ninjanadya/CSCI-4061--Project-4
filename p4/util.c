@@ -47,6 +47,7 @@ void init(int port) {
   my_addr.sin_port = htons(port);
   my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
+  // allows us to reuse the port number
   if (setsockopt(sockfd,SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
     printf("Can't set socket option\n");
     exit(1);
@@ -78,6 +79,7 @@ int accept_connection(void) {
   unsigned int addr_size;
   addr_size = sizeof(client_addr);
 
+  // accept the connection
   if ((client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_size)) == -1) {
     printf("Failed to accept connection\n");
     return -1;
@@ -103,10 +105,11 @@ int accept_connection(void) {
 ************************************************/
 int get_request(int fd, char *filename) {
   char msg[MSGSIZE];
-  char get[3];
+  char type[10];
   char path[MSGSIZE];
   int nread = 0;
 
+  // get message from client
   if ((nread = read(client_fd, msg, MSGSIZE-1)) >= 0) {
     msg[nread] = '\0';
     fprintf(stderr, "received from client: %s\n", msg);
@@ -115,14 +118,16 @@ int get_request(int fd, char *filename) {
     return 1;
   }
 
+  // parse the message and place the first two strings in type and path
+  sscanf(msg, "%s %s", type, path);
 
-  sscanf(msg, "%s %s", get, path);
-
-  if (strcmp(get, "GET") != 0) {
+  // make sure the type of the request is a "GET"
+  if (strcmp(type, "GET") != 0) {
     printf("not a GET\n");
     return 1;
   }
 
+  // there must be a space if there are at least 2 strings
   if (strstr(path," ") != NULL) {
     printf("needs to be at least 2 strings\n");
     return 1;
@@ -146,6 +151,7 @@ int get_request(int fd, char *filename) {
     return 1;
   }
 
+  // if everything is good, copy the path from the client to the output parameter and return
   strcpy(filename, path);
 
   // return 0 on success
@@ -173,13 +179,20 @@ int get_request(int fd, char *filename) {
 ************************************************/
 int return_result(int fd, char *content_type, char *buf, int numbytes) {
   char good_request[MSGSIZE];
+  int nwrite;
+
+  // creates the string to be sent back to the client for a bad request
   sprintf(good_request,
     "HTTP/1.1 200 OK\nContent-Type: %s\nContent-Length: %d\nConnection: Close\n\n%s\n",
                               content_type,           numbytes,                 buf);
-    printf("returning:\n%s\n", good_request);
-    write(fd, good_request, strlen(good_request));
-    return 0;
+    //printf("returning:\n%s\n", good_request);
+    nwrite = write(fd, good_request, strlen(good_request));
 
+  // return 1 on failure, 0 on success
+  if (nwrite == -1) {
+    return 1;
+  }
+  return 0;
 }
 
 /**********************************************
@@ -193,9 +206,18 @@ int return_result(int fd, char *content_type, char *buf, int numbytes) {
 ************************************************/
 int return_error(int fd, char *buf) {
   char bad_request[MSGSIZE];
+  int nwrite;
+
+  // creates the string to be sent back to the client for a bad request
   sprintf(bad_request,
     "HTTP/1.1 404 Not Found\nContent-Type: Text/html\nContent-Length: %ld\nConnection: Close\n\n%s\n",
                                                                     strlen(buf),              buf);
-  write(fd, bad_request, strlen(bad_request));
+
+  nwrite = write(fd, bad_request, strlen(bad_request));
+
+  // return 1 on failure, 0 on success
+  if (nwrite == -1) {
+    return 1;
+  }
   return 0;
 }
