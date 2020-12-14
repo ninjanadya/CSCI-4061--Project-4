@@ -222,6 +222,7 @@ char *getContentType(char *mybuf) {
 // You can return the file size if it is useful
 int readFromDisk(int fd, char *mybuf, void **memory, int id, int myreqnum) {
   int filefd;
+  printf("read from disk %s\n", mybuf);
   if ((filefd = open(mybuf + 1, O_RDONLY)) == -1) {
     // it is mybuf + 1 because get request will return the path with a '/' in the front
     return_error(fd, "Requested file not found.");
@@ -254,6 +255,7 @@ void *dispatch(void *arg) {
     fd = accept_connection();
     if (fd < 0) { return NULL; }
     if (get_request(fd, mybuf) != 0) { continue; /*back to top of loop!*/ }
+    printf(" dispatch %s\n",mybuf);
 
     reqptr = (char *) malloc(strlen(mybuf) + 1);
     if (reqptr == NULL) {
@@ -322,6 +324,7 @@ void *worker(void *arg) {
     // Code to get the request from the queue
     fd = requests[req_remove_index].fd;
     strcpy(mybuf, requests[req_remove_index].request);
+    printf("mybuf strcpy %s\n", mybuf);
     free(requests[req_remove_index].request);
 
     curr_queue_len--;

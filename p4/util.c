@@ -15,6 +15,14 @@
 #include <unistd.h>
 #include "util.h"
 
+#define BACKLOG 5
+#define MSGSIZE 1024
+
+int sockfd;
+int client_fd;
+
+// ./web_server 9001 /home/berg2007/Desktop/4061/P3/CSCI-4061--Project-3/P3/p3/testing 1 1 0 100 1
+
 /**********************************************
  * init
    - port is the number of the port you want the server to be
@@ -26,6 +34,35 @@
    - if init encounters any errors, it will call exit().
 ************************************************/
 void init(int port) {
+  struct sockaddr_in my_addr;
+  int enable = 1;
+
+  // create the socket
+  if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+    printf("Can't create socket\n");
+    exit(1);
+  }
+
+  my_addr.sin_family = AF_INET;
+  my_addr.sin_port = htons(port);
+  my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  if (setsockopt(sockfd,SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
+    printf("Can't set socket option\n");
+    exit(1);
+  }
+
+  if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(my_addr)) == -1) {
+    printf("Could not bind\n");
+    exit(1);
+  }
+
+  /* --- Set up the socket to listen for incoming connection requests --- */
+  if (listen(sockfd, BACKLOG) == -1) {
+    printf("Could not listen\n");
+    exit(1);
+  }
+
 }
 
 /**********************************************
@@ -36,6 +73,17 @@ void init(int port) {
    - if the return value is negative, the request should be ignored.
 ***********************************************/
 int accept_connection(void) {
+
+  struct sockaddr_in client_addr;
+  unsigned int addr_size;
+  addr_size = sizeof(client_addr);
+
+  if ((client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_size)) == -1) {
+    printf("Failed to accept connection\n");
+    return -1;
+  }
+  fprintf(stderr, "server: client connection from %s\n", inet_ntoa(client_addr.sin_addr));
+  return client_fd;
 }
 
 /**********************************************
@@ -54,6 +102,43 @@ int accept_connection(void) {
      specific 'connection'.
 ************************************************/
 int get_request(int fd, char *filename) {
+  char msg[MSGSIZE];
+  char get[3];
+  char path[MSGSIZE];
+  int nread = 0;
+
+  if ((nread = read(client_fd, msg, MSGSIZE-1)) >= 0) {
+    msg[nread] = '\0';
+    fprintf(stderr, "received from client: %s\n", msg);
+  } else {
+    printf("server read problem\n");
+    return 1;
+  }
+
+  // check to see if the message contains either ".." or "//"
+  if (strstr(msg,"..") != NULL) {
+    printf("found a ..\n");
+    return 1;
+  }
+  if (strstr(msg,"//") != NULL) {
+    printf("found a //\n");
+    return 1;
+  }
+
+  // make sure the string length isnt too long
+  if (strlen(msg) > 1023) {
+    printf("too long\n");
+    return 1;
+  }
+
+
+
+  sscanf(msg, "%s %s", get, path);
+  // printf("path: %s\nhttp: %s\n", path, http);
+  strcpy(filename, path);
+
+  // return 0 on success
+  return 0;
 }
 
 /**********************************************
@@ -76,6 +161,14 @@ int get_request(int fd, char *filename) {
    - returns 0 on success, nonzero on failure.
 ************************************************/
 int return_result(int fd, char *content_type, char *buf, int numbytes) {
+  char good_request[MSGSIZE];
+  sprintf(good_request,
+    "HTTP/1.1 200 OK\nContent-Type: %s\nContent-Length: %d\nConnection: Close\n\n%s\n",
+    content_type, numbytes, buf);
+    printf("%s\n", buf);
+    write(fd, good_request, strlen(good_request));
+    return 0;
+
 }
 
 /**********************************************
