@@ -15,8 +15,9 @@
 #include <unistd.h>
 #include "util.h"
 
-#define BACKLOG 5
-#define MSGSIZE 1024
+#define BACKLOG 20
+#define MSGSIZE 2048
+#define MAX_PATH_LENGTH 1023
 
 int sockfd;
 int client_fd;
@@ -84,7 +85,7 @@ int accept_connection(void) {
     printf("Failed to accept connection\n");
     return -1;
   }
-  fprintf(stderr, "server: client connection from %s\n", inet_ntoa(client_addr.sin_addr));
+  fprintf(stderr, "\n\nserver: client connection from %s\n", inet_ntoa(client_addr.sin_addr));
   return client_fd;
 }
 
@@ -146,8 +147,8 @@ int get_request(int fd, char *filename) {
   }
 
   // make sure the string length isnt too long
-  if (strlen(path) > 1023) {
-    printf("too long\n");
+  if (strlen(path) > MAX_PATH_LENGTH) {
+    printf("path is too long\n");
     return 1;
   }
 
@@ -179,17 +180,15 @@ int get_request(int fd, char *filename) {
 ************************************************/
 int return_result(int fd, char *content_type, char *buf, int numbytes) {
   char good_request[MSGSIZE];
-  int nwrite;
 
   // creates the string to be sent back to the client for a bad request
   sprintf(good_request,
     "HTTP/1.1 200 OK\nContent-Type: %s\nContent-Length: %d\nConnection: Close\n\n%s\n",
                               content_type,           numbytes,                 buf);
     //printf("returning:\n%s\n", good_request);
-    nwrite = write(fd, good_request, strlen(good_request));
 
   // return 1 on failure, 0 on success
-  if (nwrite == -1) {
+  if (write(fd, good_request, strlen(good_request)) == -1) {
     return 1;
   }
   return 0;
@@ -206,17 +205,14 @@ int return_result(int fd, char *content_type, char *buf, int numbytes) {
 ************************************************/
 int return_error(int fd, char *buf) {
   char bad_request[MSGSIZE];
-  int nwrite;
 
   // creates the string to be sent back to the client for a bad request
   sprintf(bad_request,
     "HTTP/1.1 404 Not Found\nContent-Type: Text/html\nContent-Length: %ld\nConnection: Close\n\n%s\n",
                                                                     strlen(buf),              buf);
 
-  nwrite = write(fd, bad_request, strlen(bad_request));
-
   // return 1 on failure, 0 on success
-  if (nwrite == -1) {
+  if (write(fd, bad_request, strlen(bad_request)) == -1) {
     return 1;
   }
   return 0;
