@@ -179,7 +179,7 @@ int get_request(int fd, char *filename) {
    - returns 0 on success, nonzero on failure.
 ************************************************/
 int return_result(int fd, char *content_type, char *buf, int numbytes) {
-  char good_request[MSGSIZE];
+  char good_request[MSGSIZE + numbytes];
 
   // creates the string to be sent back to the client for a bad request
   sprintf(good_request,
