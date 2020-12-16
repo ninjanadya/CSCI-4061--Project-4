@@ -11,9 +11,9 @@ $ ./web_server port path num_dispatch num_workers dynamic_flag qlen cache_entrie
 Run this command from client side to make a request to the server:
 $ wget --http-no-alive http://127.0.0.1:(@port)/(@request_path)
 
---http-no-alive use this option if you don't want to extend the connection for a limited time since we don't have the extra credit implemented you have to use this option
-@port is the port number you passed in for the server
-@request_path is the path to the file the client is requesting
+* --http-no-alive use this option if you don't want to extend the connection for a limited time since we don't have the extra credit implemented you have to use this option
+* @port is the port number you passed in for the server
+* @request_path is the path to the file the client is requesting
 
 * The program accepts the input as mentioned above at compilation and runs as a multithreaded webserver, waiting for requests to continue running. 
 * Once a request is received and accepted, it is sent to a dispatcher which will queue up the request that will later be handled by the worker threads. 
