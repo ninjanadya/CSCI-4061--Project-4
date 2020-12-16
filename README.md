@@ -5,9 +5,11 @@
 * Compile the program using the make command as follows:
 $ make
 
+# Server Side
 Then run this command to start the server:
 $ ./web_server port path num_dispatch num_workers dynamic_flag qlen cache_entries
 
+# Client Side
 Run this command from client side to make a request to the server:
 $ wget --http-no-alive http://127.0.0.1:(@port)/(@request_path)
 
@@ -15,6 +17,7 @@ $ wget --http-no-alive http://127.0.0.1:(@port)/(@request_path)
 * @port is the port number you passed in for the server
 * @request_path is the path to the file the client is requesting
 
+# How it works
 * The program accepts the input as mentioned above at compilation and runs as a multithreaded webserver, waiting for requests to continue running. 
 * Once a request is received and accepted, it is sent to a dispatcher which will queue up the request that will later be handled by the worker threads. 
 * All of this occuring will also update a log file of the actions taken.
