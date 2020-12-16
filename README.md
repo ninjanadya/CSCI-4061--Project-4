@@ -37,7 +37,7 @@ $ wget --http-no-alive http://127.0.0.1:(@port)/(@request_path)
 * Coding, testing, and debugging were performed by Sean and Nadya
 * CSE Lab Machine testing and README.md writen by Nadya and Maxim
 
-* test machine : apollo.cselabs.umn.edu
+* test machine : athena.cla.umn.edu
 * date : 12-16-2020
 * name : Maxim Zabilo, Sean Berg, Nadya Postolaki
 * x500 : zabil003, berg2007, posto018
