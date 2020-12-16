@@ -1,4 +1,4 @@
-## Information
+# Information
 
 * The purpose of this program is to take requests from clients via the server and fetch the request from the filesystem if that files is there.
 
@@ -8,6 +8,14 @@ $ make
 # Server Side
 Then run this command to start the server:
 $ ./web_server port path num_dispatch num_workers dynamic_flag qlen cache_entries
+
+* @port is the port number
+* @path is the directory from which the requests will be found (@path)/(@request_path)
+* @num_dispatch is the number of dispatcher threads you want upon starting the server
+* @num_workers is the number of worker threads you want upon starting the server
+* @dynamic_flag is 0 if you don't want number of dispatcher/worker threads to change and 1 if you do
+* @qlen is max queue length size for reqeusts from clients
+* @cache_entries is 0 for no cache entries and 1 for keeping cache entries to retrieve files faster
 
 # Client Side
 Run this command from client side to make a request to the server:
